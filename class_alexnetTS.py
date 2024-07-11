@@ -15,14 +15,14 @@ class AlexnetTS(nn.Module):
             nn.MaxPool2d(kernel_size=2),
             nn.ReLU(inplace=True),
             
-            nn.Conv2d(in_channels=64, out_channels=192, kernel_size=3, padding=1),
+            nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, padding=1),
             nn.MaxPool2d(kernel_size=2),
             nn.ReLU(inplace=True),
             
-            nn.Conv2d(in_channels=192, out_channels=384, kernel_size=3, padding=1),
+            nn.Conv2d(in_channels=128, out_channels=256, kernel_size=3, padding=1),
             nn.ReLU(inplace=True),
             
-            nn.Conv2d(in_channels=384, out_channels=256, kernel_size=3, padding=1),
+            nn.Conv2d(in_channels=256, out_channels=256, kernel_size=3, padding=1),
             nn.ReLU(inplace=True),
             
             nn.Conv2d(in_channels=256, out_channels=256, kernel_size=3, padding=1),
@@ -38,7 +38,7 @@ class AlexnetTS(nn.Module):
             nn.Dropout(0.5),
             nn.Linear(in_features=1000, out_features=256),
             nn.ReLU(inplace=True),
-            
+             
             nn.Linear(256, output_dim)
             )
         

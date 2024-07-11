@@ -70,8 +70,8 @@ def evaluate(model, loader, opt, criterion):
     
     with torch.no_grad():
         for (images, labels) in loader:
-            images = images.cuda()
-            labels = labels.cuda()
+            images = images
+            labels = labels
             
             # Run predictions
             output, _ = model(images)
