@@ -29,7 +29,8 @@ numClasses = 43
 
 # Define path of training data
 
-train_data_path = "../GTSRB/Train"
+train_data_path = "/home/hansong/Documents/GitHub/YSP-Traffic-Signal-Project/GTSRB/Train"
+
 train_data = torchvision.datasets.ImageFolder(root = train_data_path, transform = data_transforms)
 
 # Divide data into training and validation (0.8 and 0.2)
@@ -142,76 +143,102 @@ for epoch in range(EPOCHS):
     print("Validation: Loss = %.4f, Accuracy = %.4f, Time = %.2f seconds" % (val_loss, val_acc, val_end_time - val_start_time))
     print("")
 
+save_path = "/home/hansong/Documents/GitHub/YSP-Traffic-Signal-Project/GTSRB/Model_2.pth"
+torch.save(model.state_dict(), save_path)
 
+exit()
+
+
+import os
 import pandas as pd
+import torch
+import torchvision.transforms as transforms
+import torch.utils.data as data
 from PIL import Image
-
-
-
 from sklearn.metrics import ConfusionMatrixDisplay
+from class_alexnetTS import AlexnetTS
+
+# Custom dataset class
+class CustomDataset(data.Dataset):
+    def __init__(self, csv_file, root_dir, transform=None):
+        self.annotations = pd.read_csv(csv_file)
+        self.root_dir = root_dir
+        self.transform = transform
+
+    def __len__(self):
+        return len(self.annotations)
+    
+    def __getitem__(self, idx):
+        img_name = str(self.annotations.iloc[idx, 7])  # Path is the 8th column (index 7)
+        img_path = os.path.join(self.root_dir, img_name)
+
+        # Debug: Print the path to verify it
+        print(f"Accessing image file at path: {img_path}")
+
+        if not os.path.exists(img_path):
+            raise FileNotFoundError(f"Image file {img_path} not found")
+
+        image = Image.open(img_path).convert("RGB")
+        label = int(self.annotations.iloc[idx, 6])  # ClassId is the 7th column (index 6)
+
+        if self.transform:
+            image = self.transform(image)
+
+        return image, label
 
 
+
+# Paths
+test_data_path = "/home/hansong/Documents/GitHub/YSP-Traffic-Signal-Project/GTSRB/Test"
+csv_path = "/home/hansong/Documents/GitHub/YSP-Traffic-Signal-Project/GTSRB/Test.csv"
+
+# Transformations
 test_transforms = transforms.Compose([
     transforms.Resize([112, 112]),
     transforms.ToTensor()
-    ])
+])
 
-test_data_path = "../GTSRB/Train"
-test_data = torchvision.datasets.ImageFolder(root = test_data_path, transform = test_transforms)
+# Load test data
+test_data = CustomDataset(csv_file=csv_path, root_dir=test_data_path, transform=test_transforms)
 test_loader = data.DataLoader(test_data, batch_size=1, shuffle=False)
 
-numClasses = 43
+# Number of classes
+num_classes = 43
 
-# Load the saved model
-
-from class_alexnetTS import AlexnetTS
-MODEL_PATH = "../Model/pytorch_classification_alexnetTS.pth"
-model = AlexnetTS(numClasses)
-model.load_state_dict(torch.load(MODEL_PATH))
-model = model
-
+# Initialize metrics
 y_pred_list = []
 corr_classified = 0
 
-numClasses = 43
-
-num = range(numClasses)
-labels = []
-for i in num:
-    labels.append(str(i))
+# Prepare labels
+num = range(num_classes)
+labels = [str(i) for i in num]
 labels = sorted(labels)
 for i in num:
     labels[i] = int(labels[i])
 
-df = pd.read_csv("../GTSRB/Test.csv")
-numExamples = len(df)
-labels_list = list(df.ClassId)
+# Read the CSV file
+df = pd.read_csv(csv_path)
+
+# Extract the labels
+num_examples = len(df)
+labels_list = list(df['ClassId'])
 
 
+# Run the model on the test set
 with torch.no_grad():
-    model.eval()
-
-    i = 0
-
-    for image, _ in test_loader:
-        image = image
+    for i, (image, _) in enumerate(test_loader):
+        if i == 502:
+            break
 
         y_test_pred = model(image)
+        y_pred_list.append(y_test_pred)
 
-        y_pred_softmax = torch.log_softmax(y_test_pred[0], dim=1)
-        _, y_pred_tags = torch.max(y_pred_softmax, dim=1)
-        y_pred_tags = y_pred_tags.cpu().numpy()
-        
-        y_pred = y_pred_tags[0]
-        y_pred = labels[y_pred]
-        
-        y_pred_list.append(y_pred)
-
-        if labels_list[i] == y_pred:
+        if labels_list[i] == y_test_pred:
             corr_classified += 1
 
-        i += 1
+# Calculate accuracy
+accuracy = corr_classified / num_examples
 
-print("Number of correctly classified images = %d" % corr_classified)
-print("Number of incorrectly classified images = %d" % (numExamples - corr_classified))
-print("Final accuracy = %f" % (corr_classified / numExamples))
+print(f'Number of correctly classified images = {corr_classified}')
+print(f'Number of incorrectly classified images = {num_examples - corr_classified}')
+print(f'Final accuracy = {accuracy * 100:.2f}%')
