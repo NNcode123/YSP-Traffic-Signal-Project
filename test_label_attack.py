@@ -10,8 +10,6 @@ import numpy as np
 import os
 import matplotlib.pyplot as plt
 
-from sklearn.metrics import confusion_matrix
-from sklearn.metrics import classification_report
 
 def FGSM(image, label, model, criterion, epsilon=2/255.0):
     # Set requires_grad attribute of tensor. Important for Attack
@@ -52,8 +50,8 @@ numClasses = 43
 
 # Define path of training data
 
-train_data_path = "/home/hansong/Documents/GitHub/YSP-Traffic-Signal-Project/GTSRB/Train"
-model_path = "/home/hansong/Documents/GitHub/YSP-Traffic-Signal-Project/GTSRB/Model_2.pth"
+train_data_path = "/Users/Nitro/Documents/GitHub/YSP-Traffic-Signal-Project/GTSRB/Train"
+model_path = "/Users/Nitro/Documents/GitHub/YSP-Traffic-Signal-Project/GTSRB/Model_2.pth"
 
 train_data = torchvision.datasets.ImageFolder(root = train_data_path, transform = data_transforms)
 
@@ -93,7 +91,7 @@ def evaluate(model, loader, criterion):
     model.eval()
     
     
-    for (images_batch, labels) in loader:
+    for (images_batch, labels) in val_loader:
         perturbed_images_batch = []
         for i in range(0, len(images_batch)):
             perturbed_image = FGSM(images_batch[i].unsqueeze(0), labels[i].unsqueeze(0), model, criterion)

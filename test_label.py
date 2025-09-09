@@ -10,9 +10,6 @@ import numpy as np
 import os
 import matplotlib.pyplot as plt
 
-from sklearn.metrics import confusion_matrix
-from sklearn.metrics import classification_report
-
 data_transforms = transforms.Compose([
     transforms.Resize([112, 112]),
     transforms.ToTensor()
@@ -21,13 +18,13 @@ data_transforms = transforms.Compose([
 
 BATCH_SIZE = 4096
 learning_rate = 0.001
-EPOCHS = 1
+EPOCHS = 10
 numClasses = 43
 
 # Define path of training data
 
-train_data_path = "/home/hansong/Documents/GitHub/YSP-Traffic-Signal-Project/GTSRB/Train"
-model_path = "/home/hansong/Documents/GitHub/YSP-Traffic-Signal-Project/GTSRB/Model_2.pth"
+train_data_path = "/Users/nitro/Documents/GitHub/YSP-Traffic-Signal-Project/GTSRB/Train"
+model_path = "/Users/nitro/Documents/GitHub/YSP-Traffic-Signal-Project/GTSRB/Model_2.pth"
 
 train_data = torchvision.datasets.ImageFolder(root = train_data_path, transform = data_transforms)
 
